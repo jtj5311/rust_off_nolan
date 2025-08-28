@@ -15,13 +15,12 @@ fn setup(n: usize) -> Vec<f64> {
 
 /// Faster: removes per-iteration bounds checks. Caller must ensure `steps <= array.len()`.
 #[inline]
-fn hot_loop_unchecked(array: &[f64], steps: usize) -> f64 {
-    assert!(steps <= array.len()); // runtime guard (cheap)
+fn hot_loop_unchecked(array: &[f64], steps: usize, n: usize) -> f64 {
     let mut acc = 0.0f64;
     for i in 0..steps {
-        // SAFETY: guarded above; eliminates bounds checks in the loop.
+        // SAFETY:eliminates bounds checks in the loop.
         unsafe {
-            acc += *array.get_unchecked(i);
+            acc += *array.get_unchecked(i % n);
         }
     }
     acc
@@ -30,13 +29,15 @@ fn hot_loop_unchecked(array: &[f64], steps: usize) -> f64 {
 fn main() {
     // Match your defaults
     let n = 1_000_000usize;
-    let steps = 1_000_000usize;
+    let steps = 2 * 1_000_000usize;
 
     let array = setup(n);
+    // I'm letting numba do this so meh, let's do it here too.
+    let _out = hot_loop_unchecked(&array, steps, n);
 
     // Choose either implementation:
     let t0 = Instant::now();
-    let out = hot_loop_unchecked(&array, steps);
+    let out = hot_loop_unchecked(&array, steps, n);
     let dt = t0.elapsed();
 
     println!("sum = {out}, elapsed = {:.3?}", dt);

@@ -8,10 +8,10 @@ def setup(N:int)->np.ndarray:
     return array
 
 @njit(cache = True)
-def hot_loop(array: np.ndarray, steps: int)->float:
+def hot_loop(array: np.ndarray, steps: int, N:int)->float:
     output = 0
     for i in range(steps):
-        output += array[i]
+        output += array[i % N]
 
     return output
 
@@ -19,14 +19,14 @@ def hot_loop(array: np.ndarray, steps: int)->float:
 
 def main(N:int, steps:int):
     array = setup(N)
-    X = hot_loop(array, steps)
+    X = hot_loop(array, steps, N)
 
 
     array = setup(N)
-    X = hot_loop(array, steps)
+    X = hot_loop(array, steps, N)
 
     start = time.time()
-    X = hot_loop(array, steps)
+    X = hot_loop(array, steps, N)
     print((time.time()-start)*1000, 'ms')
     return X
 
